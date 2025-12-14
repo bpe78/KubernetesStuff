@@ -34,9 +34,9 @@ spec:
             secretKeyRef:
               name: postgres-secret
               key: password
+        - name: POSTGRES_DB
+          value: budget
         volumeMounts:
-#        - name: postgres-config
-#          mountPath: /etc/postgresql
         - name: postgres-data
           mountPath: /var/lib/postgresql/
         resources:
@@ -46,24 +46,47 @@ spec:
           limits:
             memory: "512M"
             cpu: "250m"
-      # initContainers:
-      # - name: init-createdb
-      #   image: postgres
-      #   command: ["psql", "postgresql://postgres:postgres@postgresql", "-f", "/etc/rsalbums/create_database.sql"]
-      #   volumeMounts:
-      #   - name: postgres-data
-      #     mountPath: /var/lib/postgresql/18/data
-      # - name: init-populatedb
-      #   image: postgres
-      #   command: ["psql", "postgresql://postgres:postgres@postgresql/foods", "-c", "\\copy food FROM '/etc/rsalbums/fooddisplaytable.csv' CSV HEADER;"]
-      #   volumeMounts:
-      #   - name: postgres-data
-      #     mountPath: /var/lib/postgresql/18/data
+      initContainers:
+      - name: init-db
+        image: postgres
+        command:
+        - /bin/sh
+        - -c
+        - |
+          while ! (pg_isready -U  $POSTGRES_USER);
+          do
+            echo "Database engine is not ready"
+            sleep 1
+          done
+          echo Seeding database $POSTGRES_DB
+          for f in /init/*.sql;
+          do
+            echo "Applying SQL file: $f"
+            psql -U $POSTGRES_USER -d $POSTGRES_DB -f "$f"
+          done
+        env:
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: username
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: password
+        - name: POSTGRES_DB
+          value: budget
+        volumeMounts:
+        - name: init-folder
+          mountPath: /init
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/
 
       volumes:
-#      - name: postgres-config 
-#        configMap:
-#          name: postgres-config
+      - name: init-folder
+        configMap:
+          name: postgres-init
       - name: postgres-data
         persistentVolumeClaim:
           claimName: postgres-volume-claim
