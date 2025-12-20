@@ -49,21 +49,7 @@ spec:
       initContainers:
       - name: init-db
         image: postgres
-        command:
-        - /bin/sh
-        - -c
-        - |
-          while ! (pg_isready -U  $POSTGRES_USER);
-          do
-            echo "Database engine is not ready"
-            sleep 1
-          done
-          echo Seeding database $POSTGRES_DB
-          for f in /init/*.sql;
-          do
-            echo "Applying SQL file: $f"
-            psql -U $POSTGRES_USER -d $POSTGRES_DB -f "$f"
-          done
+        command: [ "psql", "postgresql://postgres:postgres@postgresql", "-f", "/init/00-createRoles.sql", "-f", "/init/01-createDatabase.sql"]
         env:
         - name: POSTGRES_USER
           valueFrom:
