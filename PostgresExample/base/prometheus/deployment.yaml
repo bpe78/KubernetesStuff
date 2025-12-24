@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: prometheus
+  labels:
+    app: prometheus
+
+spec:
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      containers:
+      - name: prometheus
+        image: prom/prometheus
+        args:
+        - '--config.file=/etc/prometheus/prometheus.yaml'
+        - '--storage.tsdb.path=/prometheus/data'
+        ports:
+        - name: metrics
+          containerPort: 9090
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256M
+          limits:
+            cpu: 500m
+            memory: 1G
+        volumeMounts:
+        - name: prometheus-config
+          subPath: 'prometheus.yaml'
+          mountPath: '/etc/prometheus/prometheus.yaml'
+        - name: prometheus-storage-volume
+          mountPath: '/prometheus/data'
+
+      volumes:
+      - name: prometheus-config
+        configMap:
+          name: prometheus-config
+      - name: prometheus-storage-volume
+        emptyDir: {}

@@ -10,11 +10,14 @@ labels:
 
 resources:
 - ../../base/otel-collector
+- ../../base/prometheus
 - ../../base/postgres
 
 images:
 - name: otel/opentelemetry-collector-contrib
   newTag: "0.142.0"
+- name: prom/prometheus
+  newTag: "v3.8.1"
 - name: postgres
   newTag: "18.1-trixie"
 - name: prometheuscommunity/postgres-exporter

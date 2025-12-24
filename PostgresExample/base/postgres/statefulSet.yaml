@@ -15,9 +15,6 @@ spec:
     metadata:
       labels:
         app: postgres
-      annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/port: "9187"
     spec:
       securityContext:
         runAsNonRoot: true
