@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  labels:
+    app: grafana
+  name: grafana
+
+spec:
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      securityContext:
+        fsGroup: 472
+        supplementalGroups:
+        - 0
+      containers:
+      - name: grafana
+        image: grafana/grafana
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http-grafana
+          containerPort: 3000
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /robots.txt
+            port: 3000
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 2
+        livenessProbe:
+          failureThreshold: 3
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          tcpSocket:
+            port: 3000
+          timeoutSeconds: 1
+        resources:
+          requests:
+            cpu: 250m
+            memory: 750M
+          limits:
+            cpu: 500m
+            memory: 1G
+        volumeMounts:
+        - name: grafana-datasources
+          mountPath: /etc/grafana/provisioning/datasources
+          readOnly: false
+        - name: grafana-dashboards
+          mountPath: /etc/grafana/provisioning/dashboards
+          readOnly: false
+        - name: grafana-pv
+          mountPath: /var/lib/grafana
+      volumes:
+      - name: grafana-datasources
+        configMap:
+          name: grafana-datasources
+          defaultMode: 420
+      - name: grafana-dashboards
+        configMap:
+          name: grafana-dashboards
+          defaultMode: 420
+      - name: grafana-pv
+        emptyDir: {}

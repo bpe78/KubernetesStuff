@@ -9,15 +9,21 @@ labels:
     env: DEV
 
 resources:
+# Observability components
 - ../../base/otel-collector
 - ../../base/prometheus
+- ../../base/grafana
+# Databases
 - ../../base/postgres
+# Domain services
 
 images:
 - name: otel/opentelemetry-collector-contrib
   newTag: "0.142.0"
 - name: prom/prometheus
   newTag: "v3.8.1"
+- name: grafana/grafana
+  newTag: "12.3.1"
 - name: postgres
   newTag: "18.1-trixie"
 - name: prometheuscommunity/postgres-exporter
