@@ -1,0 +1,68 @@
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+    path: /health
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+  prometheus:
+    config:
+      scrape_configs:
+      - job_name: 'postgres-exporter'
+        scrape_interval: 10s
+        static_configs:
+        - targets: [ 'postgres-exporter:9187' ]
+      - job_name: 'otel-collector'
+        scrape_interval: 10s
+        static_configs:
+        - targets: [ '0.0.0.0:8888' ]
+        metric_relabel_configs:
+        - source_labels: [ __name__ ]
+          regex: '.*grpc_io.*'
+          action: drop
+  # Data sources: metrics
+  hostmetrics:
+    scrapers:
+      cpu:
+      disk:
+      filesystem:
+      load:
+      memory:
+      network:
+      process:
+      processes:
+      paging:
+
+exporters:
+  otlp:
+    endpoint: "0.0.0.0:4317"
+    tls:
+      insecure: true
+    sending_queue:
+      num_consumers: 4
+      queue_size: 100
+    retry_on_failure:
+      enabled: true
+
+  debug:
+
+  # Data sources: metrics
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+
+processors:
+  batch:
+
+service:
+  extensions:
+  - health_check
+  pipelines:
+    metrics:
+      receivers: [ otlp, prometheus, hostmetrics ]
+      processors: [ batch ]
+      exporters: [ otlp, debug, prometheus ]

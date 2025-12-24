@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: otel-collector
+  labels:
+    app: otel-collector
+
+spec:
+  selector:
+    matchLabels:
+      app: otel-collector
+
+  template:
+    metadata:
+      labels:
+        app: otel-collector
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+
+      containers:
+      - name: otel-collector
+        image: otel/opentelemetry-collector-contrib:0.142.0
+        args:
+        - "--config=otel-config.yaml"
+        env:
+        - name: SOURCE_ENVIRONMENT
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['env']
+        ports:
+        - name: grpc
+          containerPort: 4317
+        - name: http
+          containerPort: 4318
+        - name: metrics
+          containerPort: 8888
+        - name: metrics2
+          containerPort: 8889
+        volumeMounts:
+        - name: otel-config
+          subPath: "otel-config.yaml"
+          mountPath: "otel-config.yaml"
+          readOnly: true
+        livenessProbe:
+          httpGet:
+            port: 13133
+            path: /health
+          periodSeconds: 20
+          timeoutSeconds: 5
+        resources:
+          requests:
+            memory: 64Mi
+            cpu: 10m
+          limits:
+            memory: 512Mi
+            cpu: 100m
+
+      volumes:
+      - name: otel-config
+        configMap:
+          name: otel-config

@@ -4,12 +4,13 @@ kind: Kustomization
 configMapGenerator:
 - name: postgres-init
   files:
-  - ./init/00-createRoles.sql
+  - ./init/00-createApplicationRoles.sql
   - ./init/01-createDatabase.sql
   - ./init/10-createCountry.sql
   - ./init/11-createCurrency.sql
   - ./init/12-createExpenseCategory.sql
   - ./init/13-createExpense.sql
+  #- ./init/90-createExporterRoles.sql
 
 secretGenerator:
 - name: postgres-secrets
