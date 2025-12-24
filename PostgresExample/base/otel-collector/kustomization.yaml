@@ -9,6 +9,3 @@ configMapGenerator:
 resources:
 - deployment.yaml
 - service.yaml
-- service-external.yaml #TODO: remove when Gateway API is setup
-
-
