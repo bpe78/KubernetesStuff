@@ -52,7 +52,7 @@ spec:
         - name: init-folder
           mountPath: /docker-entrypoint-initdb.d
         - name: postgres-data
-          mountPath: /var/lib/postgresql/data
+          mountPath: /var/lib/postgresql
         startupProbe:
           exec:
             command: [ "pg_isready", "-U", "$POSTGRES_USER" ]
