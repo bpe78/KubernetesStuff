@@ -9,9 +9,13 @@ labels:
     env: DEV
 
 resources:
-#- ../../base/otel-collector
+- ../../base/otel-collector
 - ../../base/postgres
 
 images:
+- name: otel/opentelemetry-collector-contrib
+  newTag: "0.142.0"
 - name: postgres
-  newTag: 18.1-trixie
+  newTag: "18.1-trixie"
+- name: prometheuscommunity/postgres-exporter
+  newTag: "v0.18.1"

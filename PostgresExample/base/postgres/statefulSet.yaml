@@ -15,6 +15,9 @@ spec:
     metadata:
       labels:
         app: postgres
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9187"
     spec:
       securityContext:
         runAsNonRoot: true
@@ -36,12 +39,12 @@ spec:
         - name: POSTGRES_USER
           valueFrom:
             secretKeyRef:
-              name: postgres-secret
+              name: postgres-secrets
               key: username
         - name: POSTGRES_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: postgres-secret
+              name: postgres-secrets
               key: password
         - name: POSTGRES_DB
           value: budget
@@ -49,7 +52,7 @@ spec:
         - name: init-folder
           mountPath: /docker-entrypoint-initdb.d
         - name: postgres-data
-          mountPath: /var/lib/postgresql/
+          mountPath: /var/lib/postgresql/data
         startupProbe:
           exec:
             command: [ "pg_isready", "-U", "$POSTGRES_USER" ]
@@ -70,6 +73,25 @@ spec:
           limits:
             memory: "512M"
             cpu: "250m"
+      # Postgres metrics exporter sidecar
+      - name: postgres-exporter
+        image: prometheuscommunity/postgres-exporter
+        ports:
+        - name: metrics
+          containerPort: 9187
+        env:
+        - name: DATA_SOURCE_URI
+          value: "localhost:5432/postgres?sslmode=disable"
+        - name: DATA_SOURCE_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secrets
+              key: username
+        - name: DATA_SOURCE_PASS
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secrets
+              key: password
 
       volumes:
       - name: init-folder

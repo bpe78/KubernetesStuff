@@ -12,10 +12,12 @@ configMapGenerator:
   - ./init/13-createExpense.sql
 
 secretGenerator:
-- name: postgres-secret
+- name: postgres-secrets
   literals:
   - username=postgres
   - password=admin
+  #- exporter_username=
+  #- exporter_password=
 
 
 resources:
